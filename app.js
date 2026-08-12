@@ -84,6 +84,11 @@ const generator = {
     
     // Add Backend Service
     if (state.backend !== "none") {
+      let backendPort = 8080;
+      if (state.backend === "laravel") {
+        backendPort = 8000;
+      }
+      
       out += `${indent}backend:\n`;
       out += `${indent}${indent}build:\n`;
       out += `${indent}${indent}${indent}context: ./backend\n`;
@@ -91,7 +96,12 @@ const generator = {
       
       if (state.env === "development") {
         out += `${indent}${indent}volumes:\n`;
-        out += `${indent}${indent}${indent}- ./backend:/app\n`;
+        if (state.backend === "laravel") {
+          out += `${indent}${indent}${indent}- ./backend:/var/www/html\n`;
+        } else {
+          out += `${indent}${indent}${indent}- ./backend:/app\n`;
+        }
+        
         // Exclude internal build dependency folders from overriding
         if (state.backend === "node") {
           out += `${indent}${indent}${indent}- /app/node_modules\n`;
@@ -99,21 +109,72 @@ const generator = {
       }
       
       out += `${indent}${indent}environment:\n`;
-      out += `${indent}${indent}${indent}- PORT=8080\n`;
-      out += `${indent}${indent}${indent}- ENV=${state.env}\n`;
-      
-      if (state.database === "postgres") {
-        out += `${indent}${indent}${indent}- DATABASE_URL=postgresql://db_user:db_password@database:${state.dbPort}/db_app\n`;
-      } else if (state.database === "mongodb") {
-        out += `${indent}${indent}${indent}- MONGO_URI=mongodb://database:27017/db_app\n`;
-      } else if (state.database === "redis") {
-        out += `${indent}${indent}${indent}- REDIS_URL=redis://redis:6379\n`;
+      if (state.backend === "laravel") {
+        out += `${indent}${indent}${indent}- APP_ENV=${state.env === "development" ? "local" : "production"}\n`;
+        out += `${indent}${indent}${indent}- APP_KEY=base64:SomeGeneratedKeyHereForSecurity\n`;
+        out += `${indent}${indent}${indent}- APP_DEBUG=${state.env === "development" ? "true" : "false"}\n`;
+        if (state.database === "postgres") {
+          out += `${indent}${indent}${indent}- DB_CONNECTION=pgsql\n`;
+          out += `${indent}${indent}${indent}- DB_HOST=database\n`;
+          out += `${indent}${indent}${indent}- DB_PORT=5432\n`;
+          out += `${indent}${indent}${indent}- DB_DATABASE=db_app\n`;
+          out += `${indent}${indent}${indent}- DB_USERNAME=db_user\n`;
+          out += `${indent}${indent}${indent}- DB_PASSWORD=db_password\n`;
+        } else if (state.database === "mysql") {
+          out += `${indent}${indent}${indent}- DB_CONNECTION=mysql\n`;
+          out += `${indent}${indent}${indent}- DB_HOST=database\n`;
+          out += `${indent}${indent}${indent}- DB_PORT=3306\n`;
+          out += `${indent}${indent}${indent}- DB_DATABASE=db_app\n`;
+          out += `${indent}${indent}${indent}- DB_USERNAME=db_user\n`;
+          out += `${indent}${indent}${indent}- DB_PASSWORD=db_password\n`;
+        }
+      } else if (state.backend === "django") {
+        out += `${indent}${indent}${indent}- DEBUG=${state.env === "development" ? "1" : "0"}\n`;
+        out += `${indent}${indent}${indent}- PORT=8080\n`;
+        if (state.database === "postgres") {
+          out += `${indent}${indent}${indent}- DB_ENGINE=django.db.backends.postgresql\n`;
+          out += `${indent}${indent}${indent}- DB_NAME=db_app\n`;
+          out += `${indent}${indent}${indent}- DB_USER=db_user\n`;
+          out += `${indent}${indent}${indent}- DB_PASSWORD=db_password\n`;
+          out += `${indent}${indent}${indent}- DB_HOST=database\n`;
+          out += `${indent}${indent}${indent}- DB_PORT=5432\n`;
+        } else if (state.database === "mysql") {
+          out += `${indent}${indent}${indent}- DB_ENGINE=django.db.backends.mysql\n`;
+          out += `${indent}${indent}${indent}- DB_NAME=db_app\n`;
+          out += `${indent}${indent}${indent}- DB_USER=db_user\n`;
+          out += `${indent}${indent}${indent}- DB_PASSWORD=db_password\n`;
+          out += `${indent}${indent}${indent}- DB_HOST=database\n`;
+          out += `${indent}${indent}${indent}- DB_PORT=3306\n`;
+        }
+      } else if (state.backend === "springboot") {
+        out += `${indent}${indent}${indent}- SPRING_PROFILES_ACTIVE=${state.env}\n`;
+        if (state.database === "postgres") {
+          out += `${indent}${indent}${indent}- SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/db_app\n`;
+          out += `${indent}${indent}${indent}- SPRING_DATASOURCE_USERNAME=db_user\n`;
+          out += `${indent}${indent}${indent}- SPRING_DATASOURCE_PASSWORD=db_password\n`;
+        } else if (state.database === "mysql") {
+          out += `${indent}${indent}${indent}- SPRING_DATASOURCE_URL=jdbc:mysql://database:3306/db_app\n`;
+          out += `${indent}${indent}${indent}- SPRING_DATASOURCE_USERNAME=db_user\n`;
+          out += `${indent}${indent}${indent}- SPRING_DATASOURCE_PASSWORD=db_password\n`;
+        }
+      } else {
+        out += `${indent}${indent}${indent}- PORT=8080\n`;
+        out += `${indent}${indent}${indent}- ENV=${state.env}\n`;
+        if (state.database === "postgres") {
+          out += `${indent}${indent}${indent}- DATABASE_URL=postgresql://db_user:db_password@database:${state.dbPort}/db_app\n`;
+        } else if (state.database === "mysql") {
+          out += `${indent}${indent}${indent}- DATABASE_URL=mysql://db_user:db_password@database:${state.dbPort}/db_app\n`;
+        } else if (state.database === "mongodb") {
+          out += `${indent}${indent}${indent}- MONGO_URI=mongodb://database:27017/db_app\n`;
+        } else if (state.database === "redis") {
+          out += `${indent}${indent}${indent}- REDIS_URL=redis://redis:6379\n`;
+        }
       }
       
       // If we don't have a proxy and there is no frontend, expose backend port directly
       if (state.proxy === "none" && state.frontend === "none") {
         out += `${indent}${indent}ports:\n`;
-        out += `${indent}${indent}${indent}- "${state.appPort}:8080"\n`;
+        out += `${indent}${indent}${indent}- "${state.appPort}:${backendPort}"\n`;
       }
       
       if (state.database !== "none") {
@@ -123,8 +184,10 @@ const generator = {
       
       if (state.health) {
         out += `${indent}${indent}healthcheck:\n`;
-        if (state.backend === "python") {
+        if (state.backend === "python" || state.backend === "django") {
           out += `${indent}${indent}${indent}test: ["CMD", "curl", "-f", "http://localhost:8080/health"]\n`;
+        } else if (state.backend === "laravel") {
+          out += `${indent}${indent}${indent}test: ["CMD", "curl", "-f", "http://localhost:8000/"]\n`;
         } else {
           out += `${indent}${indent}${indent}test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]\n`;
         }
@@ -345,8 +408,87 @@ const generator = {
         out += `EXPOSE 8080\n`;
         out += `CMD ["go", "run", "main.go"]\n`;
       }
+    } else if (state.backend === "laravel") {
+      if (state.multistage && state.env === "production") {
+        out += `# Stage 1: Build dependency vendor packages\n`;
+        out += `FROM composer:2.5 AS vendor\n`;
+        out += `WORKDIR /app\n`;
+        out += `COPY composer*.json ./\n`;
+        out += `RUN composer install --no-dev --no-interaction --no-plugins --no-scripts --prefer-dist\n\n`;
+        
+        out += `# Stage 2: Production PHP runner\n`;
+        out += `FROM php:8.2-cli-alpine\n`;
+        out += `WORKDIR /var/www/html\n`;
+        out += `RUN apk --no-cache add libxml2-dev libpng-dev libjpeg-turbo-dev freetype-dev \\ \n    && docker-php-ext-install pdo_mysql pdo_pgsql gd xml\n`;
+        out += `COPY --from=vendor /app/vendor/ ./vendor/\n`;
+        out += `COPY . .\n`;
+        out += `RUN chown -R www-data:www-data storage bootstrap/cache\n`;
+        out += `EXPOSE 8000\n`;
+        out += `CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]\n`;
+      } else {
+        out += `FROM php:8.2-cli-alpine\n`;
+        out += `WORKDIR /var/www/html\n`;
+        out += `RUN apk --no-cache add libxml2-dev libpng-dev libjpeg-turbo-dev freetype-dev \\ \n    && docker-php-ext-install pdo_mysql pdo_pgsql gd xml\n`;
+        out += `COPY --from=composer:2.5 /usr/bin/composer /usr/bin/composer\n`;
+        out += `COPY composer*.json ./\n`;
+        out += `RUN composer install --no-interaction\n`;
+        out += `COPY . .\n`;
+        out += `EXPOSE 8000\n`;
+        out += `CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]\n`;
+      }
+    } else if (state.backend === "django") {
+      if (state.multistage && state.env === "production") {
+        out += `# Stage 1: Build pip wheels\n`;
+        out += `FROM python:3.10-slim AS builder\n`;
+        out += `WORKDIR /app\n`;
+        out += `COPY requirements.txt ./\n`;
+        out += `RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt\n\n`;
+        
+        out += `# Stage 2: Production Python runner\n`;
+        out += `FROM python:3.10-slim\n`;
+        out += `WORKDIR /app\n`;
+        out += `COPY --from=builder /app/wheels /wheels\n`;
+        out += `COPY --from=builder /app/requirements.txt ./\n`;
+        out += `RUN pip install --no-cache /wheels/*\n`;
+        out += `COPY . .\n`;
+        out += `EXPOSE 8080\n`;
+        out += `CMD ["gunicorn", "wsgi:application", "--bind", "0.0.0.0:8080"]\n`;
+      } else {
+        out += `FROM python:3.10-slim\n`;
+        out += `WORKDIR /app\n`;
+        out += `ENV PYTHONDONTWRITEBYTECODE=1 \\ \n    PYTHONUNBUFFERED=1\n`;
+        out += `COPY requirements.txt ./\n`;
+        out += `RUN pip install --no-cache-dir -r requirements.txt\n`;
+        out += `COPY . .\n`;
+        out += `EXPOSE 8080\n`;
+        out += `CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]\n`;
+      }
+    } else if (state.backend === "springboot") {
+      if (state.multistage && state.env === "production") {
+        out += `# Stage 1: Maven compile and build jar\n`;
+        out += `FROM maven:3.8-openjdk-17-slim AS builder\n`;
+        out += `WORKDIR /app\n`;
+        out += `COPY pom.xml ./\n`;
+        out += `RUN mvn dependency:go-offline\n`;
+        out += `COPY src ./src\n`;
+        out += `RUN mvn clean package -DskipTests\n\n`;
+        
+        out += `# Stage 2: Minimal runtime runner\n`;
+        out += `FROM openjdk:17-jdk-slim\n`;
+        out += `WORKDIR /app\n`;
+        out += `COPY --from=builder /app/target/*.jar app.jar\n`;
+        out += `EXPOSE 8080\n`;
+        out += `CMD ["java", "-jar", "app.jar"]\n`;
+      } else {
+        out += `FROM maven:3.8-openjdk-17-slim\n`;
+        out += `WORKDIR /app\n`;
+        out += `COPY pom.xml ./\n`;
+        out += `RUN mvn dependency:go-offline\n`;
+        out += `COPY . .\n`;
+        out += `EXPOSE 8080\n`;
+        out += `CMD ["mvn", "spring-boot:run"]\n`;
+      }
     }
-    
     return out;
   },
 
@@ -356,7 +498,8 @@ const generator = {
     out += `    upstream frontend_server {\n        server frontend:80;\n    }\n\n`;
     
     if (state.backend !== "none") {
-      out += `    upstream backend_server {\n        server backend:8080;\n    }\n\n`;
+      let bPort = state.backend === "laravel" ? 8000 : 8080;
+      out += `    upstream backend_server {\n        server backend:${bPort};\n    }\n\n`;
     }
     
     out += `    server {\n        listen 80;\n        server_name localhost;\n\n`;
@@ -388,14 +531,15 @@ const generator = {
     out += `}\n`;
     return out;
   },
-
+ 
   // Caddy Server file configuration
   "Caddyfile": () => {
     let out = `localhost {\n`;
     
     if (state.backend !== "none") {
+      let bPort = state.backend === "laravel" ? 8000 : 8080;
       out += `    # Proxy API calls directly to the backend container\n`;
-      out += `    reverse_proxy /api/* backend:8080\n\n`;
+      out += `    reverse_proxy /api/* backend:${bPort}\n\n`;
     }
     
     if (state.frontend !== "none") {
@@ -490,7 +634,7 @@ function renderCodeView() {
     // Keywords (version, services, build, context, dockerfile, image, ports, volumes, environment, FROM, WORKDIR, RUN, COPY, EXPOSE, CMD)
     .replace(/\b(version|services|build|context|dockerfile|image|ports|volumes|environment|depends_on|healthcheck|test|interval|timeout|retries|upstream|server|listen|server_name|location|proxy_pass|proxy_set_header|file_server|reverse_proxy)\b/g, '<span class="c-keyword">$1</span>')
     .replace(/\b(FROM|WORKDIR|RUN|COPY|EXPOSE|CMD|AS|ENV)\b/g, '<span class="c-keyword">$1</span>')
-    .replace(/\b(mkdir|docker|docker-compose|crontab|echo|exit)\b/g, '<span class="c-keyword">$1</span>');
+    .replace(/\b(mkdir|docker|docker-compose|crontab|echo|exit|composer|mvn|java|php|gunicorn|uvicorn|python|pip|go)\b/g, '<span class="c-keyword">$1</span>');
   
   DOM.codeOutputContainer.innerHTML = highlighted;
   
