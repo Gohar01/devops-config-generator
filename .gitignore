@@ -1,3 +1,6 @@
 .vercel
 .env*
 premium-boilerplate/
+logo.png
+screenshot*.png
+*.zip
