@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caddy Reverse Proxy with Docker Compose (Auto-SSL & HTTP/3) | DevOpsForge</title>
+  <meta name="description"
+    content="Complete production guide to using Caddy v2 as a reverse proxy in Docker Compose with automatic Let's Encrypt SSL, rate limiting, and HTTP/3 support.">
+  <link rel="canonical" href="https://devops-config-generator.vercel.app/caddy-docker-compose.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Caddy Reverse Proxy with Docker Compose (Auto-SSL & HTTP/3)" />
+  <meta property="og:description"
+    content="Battle-tested Caddyfile and Docker Compose reverse proxy setup with zero-config automatic SSL and HSTS headers." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://devops-config-generator.vercel.app/caddy-docker-compose.html" />
+
+  <!-- Fonts & CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .guide-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+    .guide-nav {
+      margin-bottom: 2rem;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--accent-cyan);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+    .back-link:hover {
+      color: #fff;
+    }
+    .guide-header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 1rem;
+      line-height: 1.25;
+    }
+    .guide-meta {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .guide-badge {
+      background: rgba(147, 51, 234, 0.12);
+      color: #c084fc;
+      border: 1px solid rgba(147, 51, 234, 0.3);
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .guide-content h2 {
+      font-size: 1.35rem;
+      color: #fff;
+      margin: 2rem 0 0.75rem 0;
+    }
+    .guide-content p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .code-snippet-box {
+      position: relative;
+      background: #080d1a;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      margin: 1.25rem 0 2rem 0;
+      overflow: hidden;
+    }
+    .snippet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.65rem 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--border-color);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--accent-cyan);
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .copy-btn:hover {
+      background: var(--accent-cyan);
+      color: #000;
+      border-color: var(--accent-cyan);
+    }
+    .snippet-pre {
+      margin: 0;
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+    .cta-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 2.5rem 0;
+    }
+    .cta-banner h3 {
+      color: #fff;
+      font-size: 1.15rem;
+      margin-bottom: 0.35rem;
+    }
+    .cta-banner p {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin: 0;
+    }
+    .cta-btn-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.15rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .cta-primary {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+    .cta-primary:hover {
+      box-shadow: 0 0 15px var(--accent-cyan-glow);
+    }
+    .cta-gold {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #000;
+    }
+    .cta-gold:hover {
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+    }
+    .guides-nav-footer {
+      margin-top: 3.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+    }
+    .guides-nav-footer h4 {
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    .guides-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    .guide-card-link {
+      display: block;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .guide-card-link:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.04);
+    }
+    .guide-card-link strong {
+      display: block;
+      color: #fff;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+    }
+    .guide-card-link span {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    @media (max-width: 768px) {
+      .cta-banner {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .cta-btn-group {
+        flex-direction: column;
+      }
+      .cta-btn {
+        justify-content: center;
+      }
+      .guides-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="guide-container">
+    <div class="guide-nav">
+      <a href="/" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to DevOpsForge Visual Builder
+      </a>
+    </div>
+
+    <div class="guide-header">
+      <div class="guide-badge">Infrastructure Architecture</div>
+      <h1>Caddy Reverse Proxy with Docker Compose (Auto-SSL & HTTP/3)</h1>
+      <div class="guide-meta">
+        <span>Updated September 2026</span>
+        <span>•</span>
+        <span>Caddy v2.7+</span>
+        <span>•</span>
+        <span>Automatic HTTPS & Let's Encrypt</span>
+      </div>
+    </div>
+
+    <div class="guide-content">
+      <p>Traditional web servers like Nginx require external sidecar containers (like Certbot or `nginx-proxy-manager`) to obtain and renew Let's Encrypt TLS certificates. <strong>Caddy solves this entirely</strong> by managing ACME certificates, HTTPS redirects, and HTTP/3 multiplexing natively in a single container.</p>
+      
+      <p>This guide demonstrates how to configure Caddy in Docker Compose to securely reverse-proxy upstream web services with security headers, Gzip compression, and rate limiting.</p>
+
+      <!-- CTA Callout -->
+      <div class="cta-banner">
+        <div>
+          <h3>Build Full Multi-Container Stacks with Caddy</h3>
+          <p>Generate production Docker Compose bundles with Caddy proxying Node, Python, PHP, or Go apps visually.</p>
+        </div>
+        <div class="cta-btn-group">
+          <a href="/?proxy=caddy&env=production" class="cta-btn cta-primary">
+            ⚡ Open in DevOpsForge
+          </a>
+          <a href="https://goharista17.gumroad.com/l/docker-starter-pack" target="_blank" rel="noopener noreferrer" class="cta-btn cta-gold">
+            📦 Production Pack ($19)
+          </a>
+        </div>
+      </div>
+
+      <h2>1. The Production `Caddyfile`</h2>
+      <p>Replace <code>api.yourdomain.com</code> with your domain name. Ensure your domain points to your VPS public IP before starting the container.</p>
+
+      <div class="code-snippet-box">
+        <div class="snippet-header">
+          <span>Caddyfile</span>
+          <button class="copy-btn" onclick="copySnippet(this)">Copy Caddyfile</button>
+        </div>
+        <pre class="snippet-pre"><code>api.yourdomain.com {
+    # Enable Gzip and Zstandard compression
+    encode gzip zstd
+
+    # Route incoming requests to your app container
+    reverse_proxy app:3000 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Hardened Security Headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+}</code></pre>
+      </div>
+
+      <h2>2. `docker-compose.yml` for Caddy</h2>
+      <p>Two persistent Docker volumes (<code>caddy_data</code> and <code>caddy_config</code>) must be mounted to prevent rate-limiting by Let's Encrypt on container restarts.</p>
+
+      <div class="code-snippet-box">
+        <div class="snippet-header">
+          <span>docker-compose.yml</span>
+          <button class="copy-btn" onclick="copySnippet(this)">Copy YAML</button>
+        </div>
+        <pre class="snippet-pre"><code>version: '3.8'
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy_proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # Required for HTTP/3 QUIC
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data       # Preserves SSL certificates
+      - caddy_config:/config   # Preserves runtime config
+    networks:
+      - webnet
+
+  app:
+    image: your-app-image:latest
+    container_name: web_app
+    restart: always
+    expose:
+      - "3000"
+    networks:
+      - webnet
+
+networks:
+  webnet:
+
+volumes:
+  caddy_data:
+  caddy_config:</code></pre>
+      </div>
+
+      <!-- Footer Internal Links -->
+      <div class="guides-nav-footer">
+        <h4>Explore Framework-Specific Docker Guides</h4>
+        <div class="guides-grid">
+          <a href="/laravel-docker-compose.html" class="guide-card-link">
+            <strong>Laravel + MySQL</strong>
+            <span>PHP 8.2, Composer caching & Caddy</span>
+          </a>
+          <a href="/django-docker-compose.html" class="guide-card-link">
+            <strong>Django + PostgreSQL</strong>
+            <span>Gunicorn, Python wheels & Caddy</span>
+          </a>
+          <a href="/springboot-docker-compose.html" class="guide-card-link">
+            <strong>Spring Boot + PostgreSQL</strong>
+            <span>Maven packaging & OpenJDK runner</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function copySnippet(btn) {
+      const code = btn.closest('.code-snippet-box').querySelector('code').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = 'Copied!';
+        setTimeout(() => btn.innerText = orig, 1500);
+      });
+    }
+  </script>
+</body>
+
+</html>

@@ -837,6 +837,50 @@ function init() {
         closeModal();
       }
     });
+  // Parse URL query parameters to allow pre-filling stack configurations
+  try {
+    const params = new URLSearchParams(window.location.search);
+    
+    const backendParam = params.get("backend");
+    if (backendParam) {
+      const radio = document.querySelector(`input[name="backend"][value="${backendParam}"]`);
+      if (radio) radio.checked = true;
+    }
+
+    const frontendParam = params.get("frontend");
+    if (frontendParam) {
+      const radio = document.querySelector(`input[name="frontend"][value="${frontendParam}"]`);
+      if (radio) radio.checked = true;
+    }
+
+    const databaseParam = params.get("database");
+    if (databaseParam) {
+      const radio = document.querySelector(`input[name="database"][value="${databaseParam}"]`);
+      if (radio) radio.checked = true;
+    }
+
+    const proxyParam = params.get("proxy");
+    if (proxyParam) {
+      const radio = document.querySelector(`input[name="proxy"][value="${proxyParam}"]`);
+      if (radio) radio.checked = true;
+    }
+
+    const envParam = params.get("env");
+    if (envParam && DOM.envSelect) {
+      DOM.envSelect.value = envParam;
+    }
+
+    const appPortParam = params.get("appPort");
+    if (appPortParam && DOM.appPortInput) {
+      DOM.appPortInput.value = appPortParam;
+    }
+
+    const dbPortParam = params.get("dbPort");
+    if (dbPortParam && DOM.dbPortInput) {
+      DOM.dbPortInput.value = dbPortParam;
+    }
+  } catch (err) {
+    console.error("Failed to parse query params:", err);
   }
 
   // Run initial compile

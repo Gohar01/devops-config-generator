@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://devops-config-generator.vercel.app/sitemap.xml
