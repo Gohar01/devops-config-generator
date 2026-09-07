@@ -394,11 +394,11 @@
             Download Config Bundle
           </button>
           
-          <!-- Premium templates link -->
-          <a href="https://goharista17.gumroad.com/l/docker-starter-pack" target="_blank" rel="noopener noreferrer" class="primary-btn premium-btn">
+          <!-- Premium templates modal trigger -->
+          <button type="button" id="open-premium-modal-btn" class="primary-btn premium-btn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
             Production Pack ($19)
-          </a>
+          </button>
         </div>
 
       </section>
@@ -451,6 +451,114 @@
       <div>DevOpsForge Boilerplate Generator © 2026. Made for Developers.</div>
     </footer>
 
+  </div>
+
+  <!-- Production Pack Value Modal -->
+  <div id="premium-modal" class="premium-modal-backdrop" aria-hidden="true">
+    <div class="premium-modal-dialog glass-card">
+      <button id="close-premium-modal-btn" class="modal-close-btn" aria-label="Close modal">&times;</button>
+      
+      <div class="modal-header">
+        <div class="modal-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Battle-Tested Production Stack
+        </div>
+        <h2 class="modal-title">DevOpsForge Production Starter Pack</h2>
+        <p class="modal-subtitle">Save 4+ hours of manual DevOps debugging. Deploy a hardened, automated, and secure multi-container stack in under 5 minutes.</p>
+      </div>
+
+      <!-- Feature Highlights -->
+      <div class="modal-deliverables-grid">
+        <div class="deliverable-card">
+          <div class="deliverable-icon">🛠️</div>
+          <div>
+            <h4>Hardened Multi-Stage Dockerfiles</h4>
+            <p>Production-optimized builds with non-root security users for Node.js, Django, Laravel, Spring Boot & Go.</p>
+          </div>
+        </div>
+        <div class="deliverable-card">
+          <div class="deliverable-icon">🔒</div>
+          <div>
+            <h4>Caddy Auto-SSL & DDoS Armor</h4>
+            <p>Reverse proxy preconfigured with automatic Let's Encrypt SSL, rate limiting, Gzip, and HSTS security headers.</p>
+          </div>
+        </div>
+        <div class="deliverable-card">
+          <div class="deliverable-icon">💾</div>
+          <div>
+            <h4>Automated Cloud S3/R2 Backups</h4>
+            <p>Automated database dumps with gzip compression, cloud uploads (AWS S3 / Cloudflare R2), and Slack/Discord alerts.</p>
+          </div>
+        </div>
+        <div class="deliverable-card highlight-card">
+          <div class="deliverable-icon">🚀</div>
+          <div>
+            <h4>Zero-Downtime GitHub Actions CI/CD</h4>
+            <p>Ready-to-use <code>deploy.yml</code> workflow. Automatically tests, builds, and deploys to your VPS via SSH on push to main.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison Matrix -->
+      <div class="modal-comparison-section">
+        <h3>Free Generator vs. Production Pack</h3>
+        <div class="comparison-table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Free Generator</th>
+                <th class="gold-col">Production Pack ($19)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Docker Compose & Dockerfile</td>
+                <td><span class="tag-yes">Basic template</span></td>
+                <td class="gold-col"><span class="tag-gold">Hardened Multi-Stage</span></td>
+              </tr>
+              <tr>
+                <td>Container Security</td>
+                <td><span class="tag-muted">Root user</span></td>
+                <td class="gold-col"><span class="tag-gold">Non-root security isolation</span></td>
+              </tr>
+              <tr>
+                <td>Reverse Proxy Setup</td>
+                <td><span class="tag-yes">Basic routes</span></td>
+                <td class="gold-col"><span class="tag-gold">Auto-SSL + Rate limiting + HSTS</span></td>
+              </tr>
+              <tr>
+                <td>Database Backups</td>
+                <td><span class="tag-muted">Generic script</span></td>
+                <td class="gold-col"><span class="tag-gold">S3/R2 cloud dumps + Webhook alerts</span></td>
+              </tr>
+              <tr>
+                <td>GitHub Actions CI/CD Pipeline</td>
+                <td><span class="tag-no">✕ None</span></td>
+                <td class="gold-col"><span class="tag-gold">✔ Complete deploy.yml workflow</span></td>
+              </tr>
+              <tr>
+                <td>Framework Boilerplates</td>
+                <td><span class="tag-muted">Single selection</span></td>
+                <td class="gold-col"><span class="tag-gold">All 5 framework stacks included</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal Footer CTA -->
+      <div class="modal-footer">
+        <div class="modal-pricing">
+          <div class="price-val">$19 <span class="price-type">one-time payment</span></div>
+          <div class="price-note">Instant ZIP download &bull; MIT License (unlimited personal & commercial projects)</div>
+        </div>
+        <a href="https://goharista17.gumroad.com/l/docker-starter-pack" target="_blank" rel="noopener noreferrer" class="primary-btn checkout-btn">
+          Get Instant Access ($19)
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
   </div>
 
   <!-- JavaScript file -->

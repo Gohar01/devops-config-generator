@@ -805,6 +805,40 @@ function init() {
   // Download bundle click
   DOM.downloadBundleBtn.addEventListener("click", downloadConfigBundle);
 
+  // Production Pack Modal Controls
+  const premiumModal = document.getElementById("premium-modal");
+  const openModalBtn = document.getElementById("open-premium-modal-btn");
+  const closeModalBtn = document.getElementById("close-premium-modal-btn");
+
+  if (openModalBtn && premiumModal) {
+    const openModal = () => {
+      premiumModal.classList.add("active");
+      premiumModal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    };
+
+    const closeModal = () => {
+      premiumModal.classList.remove("active");
+      premiumModal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    };
+
+    openModalBtn.addEventListener("click", openModal);
+    if (closeModalBtn) closeModalBtn.addEventListener("click", closeModal);
+
+    // Close when clicking outside the dialog on the backdrop
+    premiumModal.addEventListener("click", (e) => {
+      if (e.target === premiumModal) closeModal();
+    });
+
+    // Close when pressing Escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && premiumModal.classList.contains("active")) {
+        closeModal();
+      }
+    });
+  }
+
   // Run initial compile
   syncInputsToState();
 }
