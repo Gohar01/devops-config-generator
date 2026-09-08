@@ -837,6 +837,8 @@ function init() {
         closeModal();
       }
     });
+  }
+
   // Parse URL query parameters to allow pre-filling stack configurations
   try {
     const params = new URLSearchParams(window.location.search);
