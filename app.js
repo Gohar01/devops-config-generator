@@ -63,8 +63,9 @@ const generator = {
       
       // If we don't have a proxy, expose frontend port directly to host
       if (state.proxy === "none") {
+        let fExposePort = state.frontend === "nextjs" ? 3000 : 80;
         out += `${indent}${indent}ports:\n`;
-        out += `${indent}${indent}${indent}- "${state.appPort}:80"\n`;
+        out += `${indent}${indent}${indent}- "${state.appPort}:${fExposePort}"\n`;
       }
       
       if (state.backend !== "none") {
@@ -73,8 +74,9 @@ const generator = {
       }
       
       if (state.health) {
+        let healthPort = state.frontend === "nextjs" ? 3000 : 80;
         out += `${indent}${indent}healthcheck:\n`;
-        out += `${indent}${indent}${indent}test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/"]\n`;
+        out += `${indent}${indent}${indent}test: ["CMD", "wget", "--spider", "-q", "http://localhost:${healthPort}/"]\n`;
         out += `${indent}${indent}${indent}interval: 30s\n`;
         out += `${indent}${indent}${indent}timeout: 10s\n`;
         out += `${indent}${indent}${indent}retries: 3\n`;
@@ -321,6 +323,55 @@ const generator = {
       return out;
     }
 
+    if (state.frontend === "nextjs") {
+      if (state.multistage && state.env === "production") {
+        out += `# Stage 1: Install dependencies\n`;
+        out += `FROM node:20-alpine AS deps\n`;
+        out += `RUN apk add --no-cache libc6-compat\n`;
+        out += `WORKDIR /app\n`;
+        out += `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./\n`;
+        out += `RUN \\\n`;
+        out += `  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \\\n`;
+        out += `  elif [ -f package-lock.json ]; then npm ci; \\\n`;
+        out += `  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \\\n`;
+        out += `  else npm install; \\\n`;
+        out += `  fi\n\n`;
+        out += `# Stage 2: Build Next.js standalone bundle\n`;
+        out += `FROM node:20-alpine AS builder\n`;
+        out += `WORKDIR /app\n`;
+        out += `COPY --from=deps /app/node_modules ./node_modules\n`;
+        out += `COPY . .\n`;
+        out += `ENV NEXT_TELEMETRY_DISABLED=1\n`;
+        out += `RUN npm run build\n\n`;
+        out += `# Stage 3: Production minimal runner\n`;
+        out += `FROM node:20-alpine AS runner\n`;
+        out += `WORKDIR /app\n`;
+        out += `ENV NODE_ENV=production\n`;
+        out += `ENV NEXT_TELEMETRY_DISABLED=1\n`;
+        out += `RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs\n`;
+        out += `COPY --from=builder /app/public ./public\n`;
+        out += `COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./\n`;
+        out += `COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static\n`;
+        out += `USER nextjs\n`;
+        out += `EXPOSE 3000\n`;
+        out += `ENV PORT=3000\n`;
+        out += `ENV HOSTNAME="0.0.0.0"\n`;
+        out += `CMD ["node", "server.js"]\n`;
+        return out;
+      } else {
+        out += `FROM node:20-alpine\n`;
+        out += `WORKDIR /app\n`;
+        out += `COPY package*.json ./\n`;
+        out += `RUN npm install\n`;
+        out += `COPY . .\n`;
+        out += `EXPOSE 3000\n`;
+        out += `ENV PORT=3000\n`;
+        out += `ENV HOSTNAME="0.0.0.0"\n`;
+        out += `CMD ["npm", "run", "dev"]\n`;
+        return out;
+      }
+    }
+
     if (state.multistage && state.env === "production") {
       out += `FROM node:18-alpine AS builder\n`;
       out += `WORKDIR /app\n`;
@@ -494,8 +545,9 @@ const generator = {
 
   // Nginx reverse proxy configuration
   "nginx.conf": () => {
+    let fPort = state.frontend === "nextjs" ? 3000 : 80;
     let out = `events {\n    worker_connections 1024;\n}\n\nhttp {\n`;
-    out += `    upstream frontend_server {\n        server frontend:80;\n    }\n\n`;
+    out += `    upstream frontend_server {\n        server frontend:${fPort};\n    }\n\n`;
     
     if (state.backend !== "none") {
       let bPort = state.backend === "laravel" ? 8000 : 8080;
@@ -543,8 +595,9 @@ const generator = {
     }
     
     if (state.frontend !== "none") {
-      out += `    # Proxy regular routes to the static UI server\n`;
-      out += `    reverse_proxy /* frontend:80\n`;
+      let fPort = state.frontend === "nextjs" ? 3000 : 80;
+      out += `    # Proxy regular routes to the UI server\n`;
+      out += `    reverse_proxy /* frontend:${fPort}\n`;
     } else {
       out += `    # Serve raw static files locally\n`;
       out += `    file_server\n`;

@@ -190,7 +190,7 @@
     }
     .guides-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1rem;
     }
     .guide-card-link {
@@ -354,6 +354,10 @@ volumes:
       <div class="guides-nav-footer">
         <h4>Explore Framework-Specific Docker Guides</h4>
         <div class="guides-grid">
+          <a href="/nextjs-docker-compose.html" class="guide-card-link">
+            <strong>Next.js + PostgreSQL</strong>
+            <span>Standalone build, Redis & Caddy</span>
+          </a>
           <a href="/laravel-docker-compose.html" class="guide-card-link">
             <strong>Laravel + MySQL</strong>
             <span>PHP 8.2, Composer caching & Caddy</span>
