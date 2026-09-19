@@ -426,14 +426,36 @@ const generator = {
         out += `CMD ["npm", "run", "start"]\n`;
       }
     } else if (state.backend === "python") {
-      out += `FROM python:3.10-slim\n`;
-      out += `WORKDIR /app\n`;
-      out += `ENV PYTHONDONTWRITEBYTECODE=1 \\ \n    PYTHONUNBUFFERED=1\n`;
-      out += `COPY requirements.txt ./\n`;
-      out += `RUN pip install --no-cache-dir -r requirements.txt\n`;
-      out += `COPY . .\n`;
-      out += `EXPOSE 8080\n`;
-      out += `CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]\n`;
+      if (state.multistage && state.env === "production") {
+        out += `# Stage 1: Build pip wheels\n`;
+        out += `FROM python:3.11-slim AS builder\n`;
+        out += `WORKDIR /app\n`;
+        out += `COPY requirements.txt ./\n`;
+        out += `RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt\n\n`;
+        
+        out += `# Stage 2: Production runtime runner\n`;
+        out += `FROM python:3.11-slim\n`;
+        out += `WORKDIR /app\n`;
+        out += `ENV PYTHONDONTWRITEBYTECODE=1 \\ \n    PYTHONUNBUFFERED=1\n`;
+        out += `COPY --from=builder /app/wheels /wheels\n`;
+        out += `COPY --from=builder /app/requirements.txt ./\n`;
+        out += `RUN pip install --no-cache-dir /wheels/*\n`;
+        out += `COPY . .\n`;
+        out += `# Security: non-root user\n`;
+        out += `RUN addgroup --system appgroup && adduser --system --group appuser\n`;
+        out += `USER appuser\n`;
+        out += `EXPOSE 8080\n`;
+        out += `CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]\n`;
+      } else {
+        out += `FROM python:3.11-slim\n`;
+        out += `WORKDIR /app\n`;
+        out += `ENV PYTHONDONTWRITEBYTECODE=1 \\ \n    PYTHONUNBUFFERED=1\n`;
+        out += `COPY requirements.txt ./\n`;
+        out += `RUN pip install --no-cache-dir -r requirements.txt\n`;
+        out += `COPY . .\n`;
+        out += `EXPOSE 8080\n`;
+        out += `CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]\n`;
+      }
     } else if (state.backend === "go") {
       if (state.multistage && state.env === "production") {
         out += `FROM golang:1.20-alpine AS builder\n`;

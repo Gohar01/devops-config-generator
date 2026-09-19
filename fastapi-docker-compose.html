@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Production FastAPI Docker Compose with PostgreSQL & Caddy (Auto-SSL) | DevOpsForge</title>
+  <meta name="description"
+    content="Complete, battle-tested production Docker Compose, multi-stage Python Dockerfile, and Caddy auto-SSL reverse proxy configuration for FastAPI with PostgreSQL and Redis.">
+  <link rel="canonical" href="https://devops-config-generator.vercel.app/fastapi-docker-compose.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Production FastAPI Docker Compose with PostgreSQL & Caddy (Auto-SSL)" />
+  <meta property="og:description"
+    content="Battle-tested production Docker Compose and multi-stage Dockerfile for FastAPI with PostgreSQL, Redis, non-root user, and Caddy reverse proxy." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://devops-config-generator.vercel.app/fastapi-docker-compose.html" />
+
+  <!-- Fonts & CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .guide-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+    .guide-nav {
+      margin-bottom: 2rem;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--accent-cyan);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+    .back-link:hover {
+      color: #fff;
+    }
+    .guide-header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 1rem;
+      line-height: 1.25;
+    }
+    .guide-meta {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .guide-badge {
+      background: rgba(6, 182, 212, 0.12);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      display: inline-block;
+      margin-bottom: 0.75rem;
+    }
+    .guide-content h2 {
+      font-size: 1.35rem;
+      color: #fff;
+      margin: 2rem 0 0.75rem 0;
+    }
+    .guide-content p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .code-snippet-box {
+      position: relative;
+      background: #080d1a;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      margin: 1.25rem 0 2rem 0;
+      overflow: hidden;
+    }
+    .snippet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.65rem 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--border-color);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--accent-cyan);
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .copy-btn:hover {
+      background: var(--accent-cyan);
+      color: #000;
+      border-color: var(--accent-cyan);
+    }
+    .snippet-pre {
+      margin: 0;
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+    .cta-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 2.5rem 0;
+    }
+    .cta-banner h3 {
+      color: #fff;
+      font-size: 1.15rem;
+      margin-bottom: 0.35rem;
+    }
+    .cta-banner p {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin: 0;
+    }
+    .cta-btn-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+    .btn-primary-small {
+      background: var(--accent-cyan);
+      color: #000;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 0.6rem 1.1rem;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.2s ease;
+    }
+    .btn-primary-small:hover {
+      opacity: 0.9;
+    }
+    .btn-secondary-small {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0.6rem 1.1rem;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.2s ease;
+    }
+    .btn-secondary-small:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .guides-nav-footer {
+      margin-top: 3.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+    }
+    .guides-nav-footer h4 {
+      color: #fff;
+      font-size: 1.05rem;
+      margin-bottom: 1.25rem;
+    }
+    .guides-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1rem;
+    }
+    .guide-card-link {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .guide-card-link:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.05);
+      transform: translateY(-2px);
+    }
+    .guide-card-link strong {
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .guide-card-link span {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+    @media (max-width: 640px) {
+      .cta-banner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .cta-btn-group {
+        width: 100%;
+        flex-direction: column;
+      }
+      .btn-primary-small, .btn-secondary-small {
+        text-align: center;
+      }
+    }
+  </style>
+
+  <!-- JSON-LD TechArticle Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Production FastAPI Docker Compose with PostgreSQL & Caddy (Auto-SSL)",
+    "description": "Complete production setup for FastAPI using Docker Compose, multi-stage Python wheels build, PostgreSQL 16 with healthchecks, and Caddy reverse proxy with automatic SSL.",
+    "url": "https://devops-config-generator.vercel.app/fastapi-docker-compose.html",
+    "author": {
+      "@type": "Organization",
+      "name": "DevOpsForge",
+      "url": "https://devops-config-generator.vercel.app"
+    },
+    "datePublished": "2026-09-19",
+    "inLanguage": "en"
+  }
+  </script>
+</head>
+
+<body>
+  <div class="guide-container">
+    <nav class="guide-nav">
+      <a href="/" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to Generator
+      </a>
+    </nav>
+
+    <header class="guide-header">
+      <span class="guide-badge">Production Architecture Guide</span>
+      <h1>Production FastAPI Docker Compose with PostgreSQL & Caddy (Auto-SSL)</h1>
+      <div class="guide-meta">
+        <span>Updated September 2026</span>
+        <span>•</span>
+        <span>Python 3.11 / FastAPI / Uvicorn / PostgreSQL 16 / Caddy 2</span>
+      </div>
+    </header>
+
+    <div class="guide-content">
+      <p>Running FastAPI in production requires more than a simple development server. A robust architecture needs
+        a <strong>multi-stage Docker build</strong> that eliminates build dependencies from the final image, a
+        <strong>dedicated non-root user</strong> for container security, <strong>database connection healthchecks</strong>,
+        and an automated <strong>reverse proxy with Let's Encrypt TLS certificates</strong>.</p>
+
+      <!-- CTA Banner -->
+      <div class="cta-banner">
+        <div>
+          <h3>Build Your Custom FastAPI Stack Visually</h3>
+          <p>Use DevOpsForge to generate this exact stack or customize databases, ports, and proxies with zero configuration errors.</p>
+        </div>
+        <div class="cta-btn-group">
+          <a href="/index.html?backend=python&database=postgres&proxy=caddy&env=production" class="btn-primary-small">Customize in Generator</a>
+          <a href="https://goharista17.gumroad.com/l/docker-starter-pack" class="btn-secondary-small gumroad-button">Get Production Pack ($19)</a>
+        </div>
+      </div>
+
+      <h2>1. Production `docker-compose.yml`</h2>
+      <p>This Compose file mounts Caddy as an auto-SSL gateway in front of a multi-worker FastAPI Uvicorn service, connected to a hardened PostgreSQL 16 database with automated container healthchecks and resource limits.</p>
+
+      <div class="code-snippet-box">
+        <div class="snippet-header">
+          <span>docker-compose.yml</span>
+          <button class="copy-btn" onclick="copySnippet(this)">Copy Compose</button>
+        </div>
+        <pre class="snippet-pre"><code>version: '3.8'
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy_proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3 QUIC
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fastapi_app
+    restart: always
+    expose:
+      - "8080"
+    environment:
+      - ENVIRONMENT=production
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-fastapi_db}
+      - DB_USER=${DB_USER:-fastapi_user}
+      - DB_PASSWORD=${DB_PASSWORD:-fastapi_secret_pass}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1024M
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  database:
+    image: postgres:16-alpine
+    container_name: fastapi_postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=${DB_NAME:-fastapi_db}
+      - POSTGRES_USER=${DB_USER:-fastapi_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-fastapi_secret_pass}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fastapi_user} -d ${DB_NAME:-fastapi_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fastapi_redis
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  caddy_data:
+  caddy_config:
+  pg_data:
+  redis_data:</code></pre>
+      </div>
+
+      <h2>2. Hardened Multi-Stage Python `Dockerfile`</h2>
+      <p>This Dockerfile uses a 2-stage build: Stage 1 builds binary pip wheels without polluting the runtime container with GCC or development libraries. Stage 2 copies the pre-built wheels and runs the application under a non-root system user.</p>
+
+      <div class="code-snippet-box">
+        <div class="snippet-header">
+          <span>backend/Dockerfile</span>
+          <button class="copy-btn" onclick="copySnippet(this)">Copy Dockerfile</button>
+        </div>
+        <pre class="snippet-pre"><code># --- Stage 1: Build Wheels ---
+FROM python:3.11-slim AS builder
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+
+# --- Stage 2: Hardened Runtime ---
+FROM python:3.11-slim
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Security: Dedicated non-root user
+RUN addgroup --system --gid 1001 appgroup && \
+    adduser --system --uid 1001 --gid 1001 appuser
+
+COPY --from=builder /app/wheels /wheels
+COPY --from=builder /app/requirements.txt ./
+RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
+
+COPY . .
+RUN chown -R appuser:appgroup /app
+
+USER appuser
+
+EXPOSE 8080
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "2"]</code></pre>
+      </div>
+
+      <h2>3. Production `Caddyfile` with Automatic HTTPS</h2>
+      <p>Caddy automatically provisions, verifies, and renews Let's Encrypt / ZeroSSL TLS certificates with zero manual cron configuration. It also enforces modern security headers and HTTP/3 support.</p>
+
+      <div class="code-snippet-box">
+        <div class="snippet-header">
+          <span>Caddyfile</span>
+          <button class="copy-btn" onclick="copySnippet(this)">Copy Caddyfile</button>
+        </div>
+        <pre class="snippet-pre"><code>api.yourdomain.com {
+    encode gzip zstd
+
+    # Proxy to FastAPI Uvicorn upstream
+    reverse_proxy backend:8080
+
+    # Security Headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}</code></pre>
+      </div>
+
+      <h2>4. Production `main.py` Healthcheck Endpoint</h2>
+      <p>Ensure your FastAPI application provides a lightweight <code>/healthz</code> endpoint so Docker and Caddy can verify container readiness before directing traffic.</p>
+
+      <div class="code-snippet-box">
+        <div class="snippet-header">
+          <span>backend/main.py</span>
+          <button class="copy-btn" onclick="copySnippet(this)">Copy Python</button>
+        </div>
+        <pre class="snippet-pre"><code>from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI(
+    title="Production FastAPI App",
+    docs_url="/docs",
+    redoc_url=None
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://yourdomain.com"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/healthz", tags=["Health"])
+async def health_check():
+    return {"status": "healthy", "service": "fastapi-backend"}
+
+@app.get("/")
+async def root():
+    return {"message": "FastAPI Production Backend is Running"}</code></pre>
+      </div>
+
+      <!-- Footer Internal Links -->
+      <div class="guides-nav-footer">
+        <h4>Explore More Production Stack Guides</h4>
+        <div class="guides-grid">
+          <a href="/nextjs-docker-compose.html" class="guide-card-link">
+            <strong>Next.js + PostgreSQL</strong>
+            <span>Standalone build, Redis & Caddy</span>
+          </a>
+          <a href="/springboot-docker-compose.html" class="guide-card-link">
+            <strong>Spring Boot + PostgreSQL</strong>
+            <span>Maven packaging & OpenJDK runner</span>
+          </a>
+          <a href="/laravel-docker-compose.html" class="guide-card-link">
+            <strong>Laravel + MySQL</strong>
+            <span>PHP 8.2, Composer caching & Caddy</span>
+          </a>
+          <a href="/django-docker-compose.html" class="guide-card-link">
+            <strong>Django + PostgreSQL</strong>
+            <span>Gunicorn, Python wheels & Caddy</span>
+          </a>
+          <a href="/caddy-docker-compose.html" class="guide-card-link">
+            <strong>Caddy Auto-SSL Proxy</strong>
+            <span>Reverse proxying Docker containers</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function copySnippet(btn) {
+      const code = btn.closest('.code-snippet-box').querySelector('code').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = 'Copied!';
+        setTimeout(() => btn.innerText = orig, 1500);
+      });
+    }
+  </script>
+  <script src="https://gumroad.com/js/gumroad.js"></script>
+</body>
+
+</html>
