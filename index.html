@@ -338,6 +338,36 @@
       <!-- Right Code Preview Area -->
       <section class="code-panel-container">
 
+        <!-- Live Visual Architecture Topology Map -->
+        <div class="topology-card glass-card" id="topology-card">
+          <div class="topology-bar">
+            <div class="topology-title-area">
+              <span class="live-status-dot"></span>
+              <span class="topology-heading">ARCHITECTURE TOPOLOGY</span>
+              <span class="topology-stack-badge" id="topology-stack-badge">Loading...</span>
+            </div>
+            <div class="topology-actions">
+              <button id="copy-mermaid-btn" class="topology-action-btn" title="Copy GitHub-compatible Mermaid architecture diagram">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                </svg>
+                Copy Mermaid
+              </button>
+              <button id="toggle-topology-btn" class="topology-action-btn icon-only" title="Collapse/Expand Topology View">
+                <svg id="toggle-topology-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="18 15 12 9 6 15"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="topology-content" id="topology-content">
+            <div class="topology-flow-container" id="topology-canvas">
+              <!-- Dynamically populated by app.js renderTopologyDiagram -->
+            </div>
+          </div>
+        </div>
+
         <div class="code-terminal-card glass-card">
           <!-- Mock Terminal Header Bar -->
           <div class="terminal-bar">

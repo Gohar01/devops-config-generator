@@ -33,7 +33,15 @@ const DOM = {
   envSelect: document.getElementById("select-env"),
   multistageCheck: document.getElementById("check-multistage"),
   backupCheck: document.getElementById("check-backup"),
-  healthCheck: document.getElementById("check-health")
+  healthCheck: document.getElementById("check-health"),
+
+  // Topology Map
+  topologyCard: document.getElementById("topology-card"),
+  topologyStackBadge: document.getElementById("topology-stack-badge"),
+  topologyCanvas: document.getElementById("topology-canvas"),
+  copyMermaidBtn: document.getElementById("copy-mermaid-btn"),
+  toggleTopologyBtn: document.getElementById("toggle-topology-btn"),
+  toggleTopologyIcon: document.getElementById("toggle-topology-icon")
 };
 
 // 3. Configuration Generation Templates
@@ -803,6 +811,272 @@ function syncInputsToState() {
   // Re-generate configs
   updateDynamicTabs();
   renderCodeView();
+  renderTopologyDiagram();
+}
+
+// 6b. Live Architecture Topology Map & Mermaid Export ("Purple Cow" Feature)
+function getFrameworkLabel(val, type) {
+  const labels = {
+    frontend: {
+      none: "",
+      react: "React (Vite)",
+      nextjs: "Next.js Standalone",
+      static: "Static HTML"
+    },
+    backend: {
+      none: "",
+      node: "Node.js (Express)",
+      python: "FastAPI",
+      go: "Go (Gin)",
+      laravel: "Laravel (PHP-FPM)",
+      django: "Django (Gunicorn)",
+      springboot: "Spring Boot"
+    },
+    database: {
+      none: "",
+      postgres: "PostgreSQL 16",
+      mysql: "MySQL 8.0",
+      mongodb: "MongoDB",
+      redis: "Redis 7"
+    },
+    proxy: {
+      none: "",
+      caddy: "Caddy Auto-SSL",
+      nginx: "Nginx Proxy"
+    }
+  };
+  return (labels[type] && labels[type][val]) || val;
+}
+
+function renderTopologyDiagram() {
+  if (!DOM.topologyCanvas) return;
+
+  // 1. Update Stack Title Badge
+  const parts = [];
+  if (state.frontend !== "none") parts.push(getFrameworkLabel(state.frontend, "frontend"));
+  if (state.backend !== "none") parts.push(getFrameworkLabel(state.backend, "backend"));
+  if (state.database !== "none") parts.push(getFrameworkLabel(state.database, "database"));
+  if (state.proxy !== "none") parts.push(getFrameworkLabel(state.proxy, "proxy"));
+  if (state.backup) parts.push("S3 Backup");
+  
+  const stackTitle = parts.length > 0 ? parts.join(" + ") : "Blank Compose Canvas";
+  if (DOM.topologyStackBadge) {
+    DOM.topologyStackBadge.textContent = stackTitle;
+    DOM.topologyStackBadge.title = stackTitle;
+  }
+
+  // 2. Render Topology Nodes
+  let html = "";
+
+  // Tier 1: Public Internet / Ingress
+  html += `
+    <div class="topology-node">
+      <div class="topology-node-header">
+        <div class="topology-node-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          Client Traffic
+        </div>
+      </div>
+      <div class="topology-node-role">Public Ingress</div>
+      <div class="topology-badges">
+        <span class="topology-badge badge-port">:443 HTTPS</span>
+        <span class="topology-badge badge-port">:80 HTTP</span>
+      </div>
+    </div>
+  `;
+
+  // Connector to Proxy or App
+  html += `
+    <div class="topology-connector">
+      <span class="connector-label">TLS/SSL</span>
+      <div class="connector-line"></div>
+    </div>
+  `;
+
+  // Tier 2: Ingress Reverse Proxy (if any)
+  if (state.proxy === "caddy") {
+    html += `
+      <div class="topology-node" style="border-color: rgba(6, 182, 212, 0.45);">
+        <div class="topology-node-header">
+          <div class="topology-node-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            caddy_proxy
+          </div>
+        </div>
+        <div class="topology-node-role">Reverse Proxy Gateway</div>
+        <div class="topology-badges">
+          <span class="topology-badge badge-sec">🛡️ Auto-SSL</span>
+          <span class="topology-badge badge-port">HTTP/3 QUIC</span>
+        </div>
+      </div>
+      <div class="topology-connector">
+        <span class="connector-label">bridge</span>
+        <div class="connector-line"></div>
+      </div>
+    `;
+  } else if (state.proxy === "nginx") {
+    html += `
+      <div class="topology-node">
+        <div class="topology-node-header">
+          <div class="topology-node-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            nginx_proxy
+          </div>
+        </div>
+        <div class="topology-node-role">Reverse Proxy</div>
+        <div class="topology-badges">
+          <span class="topology-badge badge-port">80:80, 443:443</span>
+          <span class="topology-badge badge-sec">Nginx upstream</span>
+        </div>
+      </div>
+      <div class="topology-connector">
+        <span class="connector-label">bridge</span>
+        <div class="connector-line"></div>
+      </div>
+    `;
+  }
+
+  // Tier 3: Application Tier (Frontend and/or Backend)
+  const hasFrontend = state.frontend !== "none";
+  const hasBackend = state.backend !== "none";
+
+  if (hasFrontend && hasBackend) {
+    html += `<div class="topology-multi-tier">`;
+  }
+
+  if (hasFrontend) {
+    const fPort = state.frontend === "nextjs" ? 3000 : 80;
+    const isNext = state.frontend === "nextjs";
+    html += `
+      <div class="topology-node" style="border-color: rgba(99, 102, 241, 0.45);">
+        <div class="topology-node-header">
+          <div class="topology-node-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            frontend_app
+          </div>
+        </div>
+        <div class="topology-node-role">${getFrameworkLabel(state.frontend, "frontend")}</div>
+        <div class="topology-badges">
+          <span class="topology-badge badge-port">:${fPort}</span>
+          ${isNext ? '<span class="topology-badge badge-sec">🔒 non-root (1001)</span>' : ''}
+          ${state.health ? '<span class="topology-badge badge-health">🟢 healthy</span>' : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  if (hasBackend) {
+    const bPort = state.backend === "laravel" ? 8000 : state.appPort;
+    html += `
+      <div class="topology-node" style="border-color: rgba(16, 185, 129, 0.45);">
+        <div class="topology-node-header">
+          <div class="topology-node-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            backend_app
+          </div>
+        </div>
+        <div class="topology-node-role">${getFrameworkLabel(state.backend, "backend")}</div>
+        <div class="topology-badges">
+          <span class="topology-badge badge-port">:${bPort}</span>
+          ${state.multistage && state.env === "production" ? '<span class="topology-badge badge-sec">🔒 non-root</span>' : ''}
+          ${state.health ? '<span class="topology-badge badge-health">🟢 healthy</span>' : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  if (hasFrontend && hasBackend) {
+    html += `</div>`;
+  }
+
+  // Tier 4: Database / Cache Tier
+  if (state.database !== "none") {
+    html += `
+      <div class="topology-connector">
+        <span class="connector-label">TCP</span>
+        <div class="connector-line"></div>
+      </div>
+      <div class="topology-node" style="border-color: rgba(236, 72, 153, 0.45);">
+        <div class="topology-node-header">
+          <div class="topology-node-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+            database
+          </div>
+        </div>
+        <div class="topology-node-role">${getFrameworkLabel(state.database, "database")}</div>
+        <div class="topology-badges">
+          <span class="topology-badge badge-port">:${state.dbPort}</span>
+          <span class="topology-badge badge-sec">💾 persistent_vol</span>
+          ${state.health ? '<span class="topology-badge badge-health">🟢 healthy</span>' : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  // Tier 5: Disaster Recovery & S3 Cloud Backup Tier
+  if (state.backup) {
+    html += `
+      <div class="topology-connector">
+        <span class="connector-label">cron</span>
+        <div class="connector-line"></div>
+      </div>
+      <div class="topology-node" style="border-color: rgba(245, 158, 11, 0.45);">
+        <div class="topology-node-header">
+          <div class="topology-node-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+            cloud_backup
+          </div>
+        </div>
+        <div class="topology-node-role">Disaster Recovery</div>
+        <div class="topology-badges">
+          <span class="topology-badge badge-cloud">AWS S3 / R2</span>
+          <span class="topology-badge badge-health">Discord/Slack</span>
+        </div>
+      </div>
+    `;
+  }
+
+  DOM.topologyCanvas.innerHTML = html;
+}
+
+function generateMermaidDiagram() {
+  let mermaid = "```mermaid\nflowchart LR\n";
+  mermaid += '  Client(["🌐 Client Traffic"]) -->|HTTPS :443 / :80| ';
+
+  if (state.proxy === "caddy") {
+    mermaid += 'Proxy["🛡️ Caddy Auto-SSL"]\n';
+    mermaid += "  Proxy -->|Docker Bridge| ";
+  } else if (state.proxy === "nginx") {
+    mermaid += 'Proxy["🛡️ Nginx Reverse Proxy"]\n';
+    mermaid += "  Proxy -->|Docker Bridge| ";
+  }
+
+  if (state.frontend !== "none" && state.backend !== "none") {
+    mermaid += 'Frontend["💻 ' + getFrameworkLabel(state.frontend, "frontend") + '"]\n';
+    mermaid += '  Proxy -->|API Proxy| Backend["⚡ ' + getFrameworkLabel(state.backend, "backend") + ' (:' + state.appPort + ')"]\n';
+    if (state.database !== "none") {
+      mermaid += '  Backend -->|TCP :' + state.dbPort + '| DB[("💾 ' + getFrameworkLabel(state.database, "database") + '")]\n';
+    }
+  } else if (state.frontend !== "none") {
+    mermaid += 'Frontend["💻 ' + getFrameworkLabel(state.frontend, "frontend") + '"]\n';
+    if (state.database !== "none") {
+      mermaid += '  Frontend -->|TCP :' + state.dbPort + '| DB[("💾 ' + getFrameworkLabel(state.database, "database") + '")]\n';
+    }
+  } else if (state.backend !== "none") {
+    mermaid += 'Backend["⚡ ' + getFrameworkLabel(state.backend, "backend") + ' (:' + state.appPort + ')"]\n';
+    if (state.database !== "none") {
+      mermaid += '  Backend -->|TCP :' + state.dbPort + '| DB[("💾 ' + getFrameworkLabel(state.database, "database") + '")]\n';
+    }
+  } else if (state.database !== "none") {
+    mermaid += 'DB[("💾 ' + getFrameworkLabel(state.database, "database") + '")]\n';
+  }
+
+  if (state.backup && state.database !== "none") {
+    mermaid += '  DB -.->|Daily Cron S3 Dump| S3["☁️ AWS S3 / Cloudflare R2"]\n';
+  }
+
+  mermaid += "```";
+  return mermaid;
 }
 
 // 7. Utility: Clipboard Operations
@@ -879,6 +1153,36 @@ function init() {
 
   // Download bundle click
   DOM.downloadBundleBtn.addEventListener("click", downloadConfigBundle);
+
+  // Copy Mermaid Diagram click
+  if (DOM.copyMermaidBtn) {
+    DOM.copyMermaidBtn.addEventListener("click", () => {
+      const diagram = generateMermaidDiagram();
+      navigator.clipboard.writeText(diagram).then(() => {
+        const origText = DOM.copyMermaidBtn.innerHTML;
+        DOM.copyMermaidBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied Mermaid!`;
+        setTimeout(() => {
+          DOM.copyMermaidBtn.innerHTML = origText;
+        }, 1800);
+      }).catch(err => {
+        console.error("Could not copy mermaid:", err);
+      });
+    });
+  }
+
+  // Toggle Topology View Collapse
+  if (DOM.toggleTopologyBtn && DOM.topologyCard) {
+    DOM.toggleTopologyBtn.addEventListener("click", () => {
+      DOM.topologyCard.classList.toggle("collapsed");
+      if (DOM.toggleTopologyIcon) {
+        if (DOM.topologyCard.classList.contains("collapsed")) {
+          DOM.toggleTopologyIcon.innerHTML = `<polyline points="6 9 12 15 18 9"/>`;
+        } else {
+          DOM.toggleTopologyIcon.innerHTML = `<polyline points="18 15 12 9 6 15"/>`;
+        }
+      }
+    });
+  }
 
   // Production Pack Modal Controls
   const premiumModal = document.getElementById("premium-modal");
