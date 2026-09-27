@@ -1505,3 +1505,126 @@ details[open] .faq-answer {
   gap: 0.5rem;
 }
 
+/* ==========================================================================
+   Post-Download Starter Pack Upsell Toast
+   ========================================================================== */
+.download-upsell-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  max-width: 420px;
+  width: calc(100% - 3rem);
+  z-index: 9990;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px) scale(0.96);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), 
+              visibility 0.35s;
+  pointer-events: none;
+}
+
+.download-upsell-toast.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.toast-body {
+  padding: 1.25rem;
+  border-radius: 14px;
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.96) 0%, rgba(10, 15, 29, 0.98) 100%);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 25px rgba(234, 179, 8, 0.15);
+}
+
+.toast-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.toast-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toast-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.toast-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.toast-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.toast-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.toast-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-bottom: 0.85rem;
+}
+
+.toast-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.toast-gold-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0b0f19;
+  background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+  border: 1px solid rgba(250, 204, 21, 0.5);
+  box-shadow: 0 4px 15px rgba(234, 179, 8, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.toast-gold-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(234, 179, 8, 0.35);
+}
+
+@media (max-width: 480px) {
+  .download-upsell-toast {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    width: auto;
+    max-width: none;
+  }
+}
+
+

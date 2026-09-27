@@ -1128,6 +1128,15 @@ function downloadConfigBundle() {
       URL.revokeObjectURL(url);
     }, index * 250); // minor delay to prevent browser block popup
   });
+
+  // Display the post-download upsell prompt right after files start downloading
+  const toastDelay = Math.max(activeTabsList.length * 250 + 400, 750);
+  setTimeout(() => {
+    const upsellToast = document.getElementById("download-upsell-toast");
+    if (upsellToast) {
+      upsellToast.classList.add("active");
+    }
+  }, toastDelay);
 }
 
 // 9. Attach Listeners & Run On Start
@@ -1189,34 +1198,65 @@ function init() {
   const openModalBtn = document.getElementById("open-premium-modal-btn");
   const closeModalBtn = document.getElementById("close-premium-modal-btn");
 
-  if (openModalBtn && premiumModal) {
-    const openModal = () => {
+  const openModal = () => {
+    if (premiumModal) {
       premiumModal.classList.add("active");
       premiumModal.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
-    };
+    }
+  };
 
-    const closeModal = () => {
+  const closeModal = () => {
+    if (premiumModal) {
       premiumModal.classList.remove("active");
       premiumModal.setAttribute("aria-hidden", "true");
       document.body.style.overflow = "";
-    };
+    }
+  };
 
+  if (openModalBtn) {
     openModalBtn.addEventListener("click", openModal);
-    if (closeModalBtn) closeModalBtn.addEventListener("click", closeModal);
+  }
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener("click", closeModal);
+  }
 
+  // Post-Download Starter Pack Toast Controls
+  const upsellToast = document.getElementById("download-upsell-toast");
+  const closeToastBtn = document.getElementById("close-toast-btn");
+  const toastCtaBtn = document.getElementById("toast-cta-btn");
+
+  if (closeToastBtn && upsellToast) {
+    closeToastBtn.addEventListener("click", () => {
+      upsellToast.classList.remove("active");
+    });
+  }
+
+  if (toastCtaBtn && upsellToast) {
+    toastCtaBtn.addEventListener("click", () => {
+      upsellToast.classList.remove("active");
+      openModal();
+    });
+  }
+
+  if (premiumModal) {
     // Close when clicking outside the dialog on the backdrop
     premiumModal.addEventListener("click", (e) => {
       if (e.target === premiumModal) closeModal();
     });
+  }
 
-    // Close when pressing Escape key
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && premiumModal.classList.contains("active")) {
+  // Close modal or toast when pressing Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (premiumModal && premiumModal.classList.contains("active")) {
         closeModal();
       }
-    });
-  }
+      if (upsellToast && upsellToast.classList.contains("active")) {
+        upsellToast.classList.remove("active");
+      }
+    }
+  });
 
   // Parse URL query parameters to allow pre-filling stack configurations
   try {
