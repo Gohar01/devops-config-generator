@@ -22,6 +22,13 @@ It includes pre-configured production files for all supported backend frameworks
 
 ---
 
+## 📦 Free Production Starter Templates
+Prefer starting directly from a ready-to-clone repository? Check out our official GitHub starters:
+* 🚀 **[Next.js 14 + Caddy + PostgreSQL Starter](https://github.com/Gohar01/nextjs-docker-caddy-production)** — Production Next.js (standalone output) with automated Let's Encrypt SSL/TLS, HTTP/3 QUIC, and PostgreSQL 16.
+* ⚡ **[FastAPI + Caddy + PostgreSQL Starter](https://github.com/Gohar01/fastapi-docker-caddy-starter)** — Hardened Python 3.11-slim FastAPI boilerplate with non-root security isolation and Caddy reverse proxy.
+
+---
+
 ## Why DevOpsForge?
 
 For developers, setting up infrastructure files (like Nginx rules, Caddy routing, and Docker volumes) is a recurring chore. Most online generators require uploading configuration variables to a database server. 
