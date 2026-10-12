@@ -17,7 +17,7 @@
     rel="stylesheet">
 
   <!-- CSS Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1.1">
+  <link rel="stylesheet" href="style.css?v=1.2">
 
   <!-- DevHunt Launch Banner -->
   <script defer data-url="https://devhunt.org/tool/devopsforge" src="https://cdn.jsdelivr.net/gh/sidiDev/devhunt-banner/indexV0.js"></script>
@@ -50,6 +50,32 @@
         Instant production-ready Docker & Reverse Proxy boilerplate configs.
       </div>
     </header>
+
+    <!-- Hero Intro Section -->
+    <section class="hero-intro glass-card">
+      <div class="hero-badge-row">
+        <span class="hero-badge">⚡ 100% Client-Side Compiler</span>
+        <span class="hero-badge highlight">Zero Telemetry • Free Tool</span>
+      </div>
+      <h1 class="hero-title">Stop writing Dockerfiles & Reverse Proxy configs from scratch.</h1>
+      <p class="hero-subtitle">
+        Visually compile production-ready Docker Compose stacks, automated Caddy & Nginx SSL configurations, and database backup scripts in 5 seconds. Configure once, deploy to any VPS.
+      </p>
+      <div class="hero-features-list">
+        <span class="feature-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Auto HTTPS / Let's Encrypt
+        </span>
+        <span class="feature-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Multi-Stage Non-Root Containers
+        </span>
+        <span class="feature-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Visual Architecture Topology
+        </span>
+      </div>
+    </section>
 
     <!-- Main Workspace -->
     <main class="workspace-grid">
@@ -355,7 +381,7 @@
                   <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
                   <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
                 </svg>
-                Copy Mermaid
+                Copy Architecture Diagram
               </button>
               <button id="toggle-topology-btn" class="topology-action-btn icon-only" title="Collapse/Expand Topology View">
                 <svg id="toggle-topology-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -432,6 +458,26 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
             Production Pack ($19)
           </button>
+        </div>
+
+        <!-- Bundle Differentiation Callout -->
+        <div class="bundle-comparison-hint glass-card">
+          <div class="hint-col">
+            <div class="hint-header">
+              <span class="hint-tag tag-free">FREE BUNDLE</span>
+            </div>
+            <p class="hint-text">Standard Docker Compose, Dockerfiles & reverse proxy configs for development.</p>
+          </div>
+          <div class="hint-divider">VS</div>
+          <div class="hint-col">
+            <div class="hint-header">
+              <span class="hint-tag tag-gold">PRODUCTION PACK ($19)</span>
+            </div>
+            <p class="hint-text">Adds GitHub Actions CI/CD, S3 automated backups, hardened SSL & complete repo starters.</p>
+            <button type="button" class="hint-compare-link" id="compare-matrix-link">
+              View full side-by-side comparison &rarr;
+            </button>
+          </div>
         </div>
 
       </section>

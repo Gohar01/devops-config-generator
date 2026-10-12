@@ -1214,8 +1214,13 @@ function init() {
     }
   };
 
+  const compareMatrixLink = document.getElementById("compare-matrix-link");
+
   if (openModalBtn) {
     openModalBtn.addEventListener("click", openModal);
+  }
+  if (compareMatrixLink) {
+    compareMatrixLink.addEventListener("click", openModal);
   }
   if (closeModalBtn) {
     closeModalBtn.addEventListener("click", closeModal);
