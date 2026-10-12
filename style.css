@@ -45,10 +45,10 @@ body {
   overflow-x: hidden;
 }
 
-/* Glow bubbles */
+/* Glow bubbles (Fixed to viewport to prevent vertical overflow/dead space) */
 .glow-blob-1 {
-  position: absolute;
-  top: -15%;
+  position: fixed;
+  top: -15vw;
   left: 20%;
   width: 50vw;
   height: 50vw;
@@ -58,8 +58,8 @@ body {
 }
 
 .glow-blob-2 {
-  position: absolute;
-  bottom: -15%;
+  position: fixed;
+  bottom: -15vw;
   right: 15%;
   width: 45vw;
   height: 45vw;
@@ -735,15 +735,6 @@ body {
   transform: translateY(0);
 }
 
-/* Footer layout */
-.app-footer {
-  text-align: center;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: auto;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border-color);
-}
 
 /* Affiliate Promotion Cards Update */
 .promo-card {
