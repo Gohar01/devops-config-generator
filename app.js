@@ -12,6 +12,7 @@ const state = {
   multistage: true,
   backup: false,
   health: false,
+  customEnv: "",
   activeTab: "docker-compose.yml"
 };
 
@@ -34,6 +35,7 @@ const DOM = {
   multistageCheck: document.getElementById("check-multistage"),
   backupCheck: document.getElementById("check-backup"),
   healthCheck: document.getElementById("check-health"),
+  customEnvInput: document.getElementById("custom-env-input"),
 
   // Topology Map
   topologyCard: document.getElementById("topology-card"),
@@ -693,6 +695,55 @@ const generator = {
     out += `echo "Deployment pipeline completed successfully!"\n`;
     out += `docker compose ps\n`;
     return out;
+  },
+
+  // Environment variables file (.env)
+  ".env": () => {
+    let out = `# ==========================================================================\n`;
+    out += `# DevOpsForge Auto-Generated Environment Configuration\n`;
+    out += `# Environment: ${state.env.toUpperCase()} | Generated 100% Client-Side In-Browser\n`;
+    out += `# ==========================================================================\n\n`;
+
+    out += `# --- Core Application Settings ---\n`;
+    out += `APP_ENV=${state.env}\n`;
+    out += `PORT=${state.appPort}\n`;
+
+    if (state.database !== "none") {
+      out += `\n# --- Database Configuration ---\n`;
+      out += `DB_PORT=${state.dbPort}\n`;
+      if (state.database === "postgres") {
+        out += `POSTGRES_DB=db_app\n`;
+        out += `POSTGRES_USER=db_user\n`;
+        out += `POSTGRES_PASSWORD=db_password_change_me\n`;
+        out += `DATABASE_URL=postgresql://db_user:db_password_change_me@database:${state.dbPort}/db_app\n`;
+      } else if (state.database === "mysql") {
+        out += `MYSQL_DATABASE=db_app\n`;
+        out += `MYSQL_USER=db_user\n`;
+        out += `MYSQL_PASSWORD=db_password_change_me\n`;
+        out += `MYSQL_ROOT_PASSWORD=root_password_change_me\n`;
+        out += `DATABASE_URL=mysql://db_user:db_password_change_me@database:${state.dbPort}/db_app\n`;
+      } else if (state.database === "mongodb") {
+        out += `MONGO_INITDB_ROOT_USERNAME=mongo_admin\n`;
+        out += `MONGO_INITDB_ROOT_PASSWORD=mongo_password_change_me\n`;
+        out += `MONGO_URL=mongodb://mongo_admin:mongo_password_change_me@database:${state.dbPort}/db_app?authSource=admin\n`;
+      } else if (state.database === "redis") {
+        out += `REDIS_HOST=database\n`;
+        out += `REDIS_PORT=${state.dbPort}\n`;
+      }
+    }
+
+    if (state.customEnv && state.customEnv.trim().length > 0) {
+      out += `\n# --- Custom Environment Variables ---\n`;
+      const lines = state.customEnv.trim().split("\n");
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed) {
+          out += `${trimmed}\n`;
+        }
+      });
+    }
+
+    return out;
   }
 };
 
@@ -769,6 +820,9 @@ function updateDynamicTabs() {
   // Deploy orchestration shell script
   tabsList.push("deploy.sh");
 
+  // Environment variables (.env)
+  tabsList.push(".env");
+
   // Validate activeTab is still in the active list. If not, reset activeTab.
   if (!tabsList.includes(state.activeTab)) {
     state.activeTab = tabsList[0];
@@ -802,6 +856,11 @@ function syncInputsToState() {
   state.appPort = parseInt(DOM.appPortInput.value) || 3000;
   state.dbPort = parseInt(DOM.dbPortInput.value) || 5432;
   state.env = DOM.envSelect.value;
+
+  // Custom environment variables
+  if (DOM.customEnvInput) {
+    state.customEnv = DOM.customEnvInput.value;
+  }
   
   // Checkboxes
   state.multistage = DOM.multistageCheck.checked;
@@ -1105,6 +1164,7 @@ function downloadConfigBundle() {
   if (state.proxy === "caddy") activeTabsList.push("Caddyfile");
   if (state.backup) activeTabsList.push("backup.sh");
   activeTabsList.push("deploy.sh");
+  activeTabsList.push(".env");
 
   // Since we want zero dependencies, we will download the configuration files sequentially
   // by creating hidden links and clicking them with a minor delay.
@@ -1147,6 +1207,9 @@ function init() {
   DOM.appPortInput.addEventListener("input", syncInputsToState);
   DOM.dbPortInput.addEventListener("input", syncInputsToState);
   DOM.envSelect.addEventListener("change", syncInputsToState);
+  if (DOM.customEnvInput) {
+    DOM.customEnvInput.addEventListener("input", syncInputsToState);
+  }
 
   // Copy code content
   DOM.copyCodeBtn.addEventListener("click", () => {
