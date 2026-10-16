@@ -17,7 +17,7 @@
     rel="stylesheet">
 
   <!-- CSS Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1.4">
+  <link rel="stylesheet" href="style.css?v=1.5">
 
   <!-- DevHunt Launch Banner -->
   <script defer data-url="https://devhunt.org/tool/devopsforge" src="https://cdn.jsdelivr.net/gh/sidiDev/devhunt-banner/indexV0.js"></script>
@@ -611,14 +611,15 @@
 
       <!-- Comparison Matrix -->
       <div class="modal-comparison-section">
-        <h3>Free Generator vs. Production Pack</h3>
+        <h3>Free Generator vs. Production Pack vs. Agency Kit</h3>
         <div class="comparison-table-wrapper">
           <table class="comparison-table">
             <thead>
               <tr>
                 <th>Feature</th>
                 <th>Free Generator</th>
-                <th class="gold-col">Production Pack ($19)</th>
+                <th class="gold-col">Indie Pack ($19)</th>
+                <th class="agency-col">Agency Kit ($49)</th>
               </tr>
             </thead>
             <tbody>
@@ -626,47 +627,96 @@
                 <td>Docker Compose & Dockerfile</td>
                 <td><span class="tag-yes">Basic template</span></td>
                 <td class="gold-col"><span class="tag-gold">Hardened Multi-Stage</span></td>
+                <td class="agency-col"><span class="tag-agency">Hardened Multi-Stage</span></td>
               </tr>
               <tr>
                 <td>Container Security</td>
                 <td><span class="tag-muted">Root user</span></td>
-                <td class="gold-col"><span class="tag-gold">Non-root security isolation</span></td>
+                <td class="gold-col"><span class="tag-gold">Non-root isolation</span></td>
+                <td class="agency-col"><span class="tag-agency">Non-root isolation</span></td>
               </tr>
               <tr>
                 <td>Reverse Proxy Setup</td>
                 <td><span class="tag-yes">Basic routes</span></td>
-                <td class="gold-col"><span class="tag-gold">Auto-SSL + Rate limiting + HSTS</span></td>
+                <td class="gold-col"><span class="tag-gold">Auto-SSL + Rate limit</span></td>
+                <td class="agency-col"><span class="tag-agency">Auto-SSL + Rate limit</span></td>
               </tr>
               <tr>
                 <td>Database Backups</td>
                 <td><span class="tag-muted">Generic script</span></td>
-                <td class="gold-col"><span class="tag-gold">S3/R2 cloud dumps + Webhook alerts</span></td>
+                <td class="gold-col"><span class="tag-gold">S3/R2 Cloud Dumps</span></td>
+                <td class="agency-col"><span class="tag-agency">S3/R2 Cloud Dumps</span></td>
               </tr>
               <tr>
-                <td>GitHub Actions CI/CD Pipeline</td>
+                <td>GitHub Actions CI/CD</td>
                 <td><span class="tag-no">✕ None</span></td>
-                <td class="gold-col"><span class="tag-gold">✔ Complete deploy.yml workflow</span></td>
+                <td class="gold-col"><span class="tag-gold">✔ Full deploy.yml</span></td>
+                <td class="agency-col"><span class="tag-agency">✔ Full deploy.yml</span></td>
               </tr>
               <tr>
-                <td>Framework Boilerplates</td>
+                <td>Framework Stacks</td>
                 <td><span class="tag-muted">Single selection</span></td>
-                <td class="gold-col"><span class="tag-gold">All 5 framework stacks included</span></td>
+                <td class="gold-col"><span class="tag-gold">All 5 Stacks Included</span></td>
+                <td class="agency-col"><span class="tag-agency">All 5 Stacks Included</span></td>
+              </tr>
+              <tr>
+                <td>Commercial Client Rights</td>
+                <td><span class="tag-muted">Personal only</span></td>
+                <td class="gold-col"><span class="tag-gold">1 Project / Product</span></td>
+                <td class="agency-col"><span class="tag-agency">✔ Unlimited Client Sites</span></td>
+              </tr>
+              <tr>
+                <td>Terraform & Ansible Scripts</td>
+                <td><span class="tag-no">✕ None</span></td>
+                <td class="gold-col"><span class="tag-muted">✕ Not included</span></td>
+                <td class="agency-col"><span class="tag-agency">✔ AWS & DO Terraform Scripts</span></td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Modal Footer CTA -->
-      <div class="modal-footer">
-        <div class="modal-pricing">
-          <div class="price-val">$19 <span class="price-type">one-time payment</span></div>
-          <div class="price-note">Instant ZIP download &bull; MIT License (unlimited personal & commercial projects)</div>
+      <!-- Modal Pricing Tiers -->
+      <div class="pricing-tiers-grid">
+        <!-- Tier 1: Indie Developer -->
+        <div class="pricing-tier-card">
+          <div class="tier-header">
+            <span class="tier-label">Indie Developer</span>
+            <div class="tier-price">$19 <span class="tier-type">one-time</span></div>
+          </div>
+          <p class="tier-desc">Ideal for solo founders, side projects, and single SaaS deployments.</p>
+          <ul class="tier-features">
+            <li>✔ All 5 production framework stacks</li>
+            <li>✔ Hardened multi-stage non-root Dockerfiles</li>
+            <li>✔ Zero-downtime GitHub Actions CI/CD</li>
+            <li>✔ Automated S3/R2 database backups</li>
+            <li>✔ Single-project commercial license</li>
+          </ul>
+          <a href="https://goharista17.gumroad.com/l/docker-starter-pack" class="tier-btn indie-btn" data-gumroad-single-product="true">
+            Get Indie Pack ($19)
+          </a>
         </div>
-        <a href="https://goharista17.gumroad.com/l/docker-starter-pack" class="primary-btn checkout-btn" data-gumroad-single-product="true">
-          Get Instant Access ($19)
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </a>
+
+        <!-- Tier 2: Agency Commercial Kit -->
+        <div class="pricing-tier-card featured-tier">
+          <div class="tier-badge">Recommended for Agencies</div>
+          <div class="tier-header">
+            <span class="tier-label">Agency Commercial Kit</span>
+            <div class="tier-price">$49 <span class="tier-type">one-time</span></div>
+          </div>
+          <p class="tier-desc">For freelancers, agencies, and teams shipping multiple client projects.</p>
+          <ul class="tier-features">
+            <li>✔ <strong>Everything in Indie Pack</strong></li>
+            <li>✔ <strong>Unlimited Client Projects</strong> commercial license</li>
+            <li>✔ <strong>Terraform (AWS & DigitalOcean)</strong> VM provisioning</li>
+            <li>✔ <strong>Ansible playbooks</strong> for instant VPS bootstrap</li>
+            <li>✔ Priority 1-on-1 DevOps setup support</li>
+          </ul>
+          <a href="https://goharista17.gumroad.com/l/docker-starter-pack" class="tier-btn agency-btn" data-gumroad-single-product="true">
+            Get Agency License ($49)
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
       </div>
     </div>
   </div>
